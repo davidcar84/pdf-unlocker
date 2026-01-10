@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4F46E5">
+    <title>PDF Unlocker</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            color: #4F46E5;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #6B7280;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .upload-area {
+            border: 2px dashed #D1D5DB;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        
+        .upload-area:hover {
+            border-color: #4F46E5;
+            background: #F9FAFB;
+        }
+        
+        .upload-area.dragover {
+            border-color: #4F46E5;
+            background: #EEF2FF;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        input[type="password"],
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="password"]:focus,
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #4F46E5;
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #4F46E5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            background: #4338CA;
+        }
+        
+        button:disabled {
+            background: #9CA3AF;
+            cursor: not-allowed;
+        }
+        
+        .download-btn {
+            background: #10B981;
+            display: none;
+        }
+        
+        .download-btn:hover {
+            background: #059669;
+        }
+        
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            font-size: 14px;
+        }
+        
+        .status.error {
+            background: #FEE2E2;
+            color: #991B1B;
+            display: block;
+        }
+        
+        .status.success {
+            background: #D1FAE5;
+            color: #065F46;
+            display: block;
+        }
+        
+        .status.info {
+            background: #DBEAFE;
+            color: #1E40AF;
+            display: block;
+        }
+        
+        .file-info {
+            background: #F3F4F6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .file-info.show {
+            display: block;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 5px;
+        }
+        
+        .file-size {
+            color: #6B7280;
+            font-size: 14px;
+        }
+        
+        .slider-container {
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .slider-container.show {
+            display: block;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: #4B5563;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .slider-value {
+            color: #4F46E5;
+            font-weight: 600;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #E5E7EB;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4F46E5;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #4338CA;
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4F46E5;
+            cursor: pointer;
+            border: none;
+            transition: background 0.3s;
+        }
+        
+        input[type="range"]::-moz-range-thumb:hover {
+            background: #4338CA;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔓 PDF Unlocker</h1>
+        <p class="subtitle">Remove password protection from your PDFs</p>
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📄</div>
+            <p><strong>Click to upload</strong> or drag and drop</p>
+            <p style="color: #9CA3AF; font-size: 14px; margin-top: 5px;">PDF files only</p>
+            <input type="file" id="fileInput" accept=".pdf">
+        </div>
+        
+        <div class="file-info" id="fileInfo">
+            <div class="file-name" id="fileName"></div>
+            <div class="file-size" id="fileSize"></div>
+        </div>
+        
+        <input type="password" id="passwordInput" placeholder="Enter PDF password" style="display: none;">
+        
+        <input type="text" id="watermarkInput" placeholder="Enter watermark text (e.g., CONFIDENTIAL)" style="display: none;">
+        
+        <div class="slider-container" id="sliderContainer">
+            <div class="slider-label">
+                <span>Watermark Size</span>
+                <span class="slider-value" id="sliderValue">Medium</span>
+            </div>
+            <input type="range" id="sizeSlider" min="1" max="5" value="3" step="1">
+        </div>
+        
+        <button id="unlockBtn" style="display: none;">Unlock PDF</button>
+        <button id="watermarkBtn" style="display: none; background: #8B5CF6;">Add Watermark</button>
+        <button class="download-btn" id="downloadBtn">📥 Download Unlocked PDF</button>
+        <button class="download-btn" id="downloadWatermarkedBtn" style="background: #8B5CF6;">📥 Download with Watermark</button>
+        
+        <div class="status" id="status"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const unlockBtn = document.getElementById('unlockBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const watermarkBtn = document.getElementById('watermarkBtn');
+        const watermarkInput = document.getElementById('watermarkInput');
+        const downloadWatermarkedBtn = document.getElementById('downloadWatermarkedBtn');
+        const sizeSlider = document.getElementById('sizeSlider');
+        const sliderValue = document.getElementById('sliderValue');
+        const sliderContainer = document.getElementById('sliderContainer');
+        const status = document.getElementById('status');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        
+        let selectedFile = null;
+        let unlockedPdfBlob = null;
+        let watermarkedPdfBlob = null;
+        
+        // Set up PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        
+        // Slider labels
+        const sizeLabels = {
+            1: 'Very Small',
+            2: 'Small',
+            3: 'Medium',
+            4: 'Large',
+            5: 'Very Large'
+        };
+        
+        // Update slider label
+        sizeSlider.addEventListener('input', (e) => {
+            sliderValue.textContent = sizeLabels[e.target.value];
+        });
+        
+        // Upload area click
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type === 'application/pdf') {
+                handleFile(files[0]);
+            }
+        });
+        
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+        
+        function handleFile(file) {
+            selectedFile = file;
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.classList.add('show');
+            passwordInput.style.display = 'block';
+            watermarkInput.style.display = 'block';
+            sliderContainer.classList.add('show');
+            unlockBtn.style.display = 'block';
+            watermarkBtn.style.display = 'block';
+            downloadBtn.style.display = 'none';
+            downloadWatermarkedBtn.style.display = 'none';
+            status.className = 'status';
+            status.style.display = 'none';
+            unlockedPdfBlob = null;
+            watermarkedPdfBlob = null;
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+        
+        unlockBtn.addEventListener('click', async () => {
+            const password = passwordInput.value.trim();
+            
+            if (!selectedFile) {
+                showStatus('Please select a PDF file', 'error');
+                return;
+            }
+            
+            unlockBtn.disabled = true;
+            unlockBtn.textContent = 'Unlocking...';
+            showStatus('Processing PDF...', 'info');
+            
+            try {
+                const arrayBuffer = await selectedFile.arrayBuffer();
+                
+                // Try to load PDF with password
+                const loadingTask = pdfjsLib.getDocument({
+                    data: arrayBuffer,
+                    password: password
+                });
+                
+                const pdf = await loadingTask.promise;
+                
+                showStatus('PDF loaded successfully. Creating unlocked version...', 'info');
+                
+                // Create new PDF using jsPDF
+                const { jsPDF } = window.jspdf;
+                const newPdf = new jsPDF();
+                let isFirstPage = true;
+                
+                // Process each page
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    showStatus(`Processing page ${pageNum} of ${pdf.numPages}...`, 'info');
+                    
+                    const page = await pdf.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: 2.0 });
+                    
+                    // Create canvas
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    
+                    // Render page to canvas
+                    await page.render({
+                        canvasContext: context,
+                        viewport: viewport
+                    }).promise;
+                    
+                    // Add page to new PDF
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                    const pdfWidth = 210; // A4 width in mm
+                    const pdfHeight = (viewport.height * pdfWidth) / viewport.width;
+                    
+                    if (!isFirstPage) {
+                        newPdf.addPage([pdfWidth, pdfHeight]);
+                    } else {
+                        // Set first page dimensions
+                        newPdf.internal.pageSize.width = pdfWidth;
+                        newPdf.internal.pageSize.height = pdfHeight;
+                        isFirstPage = false;
+                    }
+                    
+                    newPdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                }
+                
+                // Save as blob
+                unlockedPdfBlob = newPdf.output('blob');
+                
+                showStatus('✓ PDF unlocked successfully!', 'success');
+                downloadBtn.style.display = 'block';
+                unlockBtn.style.display = 'none';
+                passwordInput.style.display = 'none';
+                
+            } catch (error) {
+                console.error('Error details:', error);
+                
+                if (error.name === 'PasswordException') {
+                    if (error.code === 1) {
+                        showStatus('Password required. Please enter the password.', 'error');
+                    } else if (error.code === 2) {
+                        showStatus('Incorrect password. Please try again.', 'error');
+                    }
+                } else if (error.message && error.message.includes('password')) {
+                    showStatus('Incorrect password. Please try again.', 'error');
+                } else {
+                    showStatus('Error: ' + error.message, 'error');
+                }
+                
+                unlockBtn.disabled = false;
+                unlockBtn.textContent = 'Unlock PDF';
+            }
+        });
+        
+        downloadBtn.addEventListener('click', () => {
+            if (unlockedPdfBlob) {
+                const url = URL.createObjectURL(unlockedPdfBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = selectedFile.name.replace('.pdf', '_unlocked.pdf');
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showStatus('✓ Download started!', 'success');
+            }
+        });
+        
+        watermarkBtn.addEventListener('click', async () => {
+            const watermarkText = watermarkInput.value.trim();
+            const password = passwordInput.value.trim();
+            
+            if (!selectedFile) {
+                showStatus('Please select a PDF file', 'error');
+                return;
+            }
+            
+            if (!watermarkText) {
+                showStatus('Please enter watermark text', 'error');
+                return;
+            }
+            
+            watermarkBtn.disabled = true;
+            watermarkBtn.textContent = 'Adding Watermark...';
+            showStatus('Processing PDF with watermark...', 'info');
+            
+            try {
+                const arrayBuffer = await selectedFile.arrayBuffer();
+                
+                // Try to load PDF with password if provided
+                const loadingTask = pdfjsLib.getDocument({
+                    data: arrayBuffer,
+                    password: password || undefined
+                });
+                
+                const pdf = await loadingTask.promise;
+                
+                showStatus('PDF loaded. Adding watermark...', 'info');
+                
+                // Create new PDF with watermark
+                const { jsPDF } = window.jspdf;
+                const newPdf = new jsPDF();
+                let isFirstPage = true;
+                
+                // Process each page
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    showStatus(`Adding watermark to page ${pageNum} of ${pdf.numPages}...`, 'info');
+                    
+                    const page = await pdf.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: 2.0 });
+                    
+                    // Create canvas
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    
+                    // Render page to canvas
+                    await page.render({
+                        canvasContext: context,
+                        viewport: viewport
+                    }).promise;
+                    
+                    // Add watermark to canvas
+                    context.save();
+                    
+                    // Move to center of canvas
+                    context.translate(canvas.width / 2, canvas.height / 2);
+                    
+                    // Rotate 30 degrees
+                    context.rotate(-30 * Math.PI / 180);
+                    
+                    // Set watermark style - size based on slider value
+                    const sizeMultiplier = parseFloat(sizeSlider.value) / 3; // 3 is the default (Medium)
+                    const baseFontSize = Math.min(canvas.width, canvas.height) / 10 - 3;
+                    const fontSize = baseFontSize * sizeMultiplier;
+                    context.font = `bold ${fontSize}px Arial`;
+                    context.textAlign = 'center';
+                    context.textBaseline = 'middle';
+                    
+                    // Add shadow
+                    context.shadowColor = 'rgba(0, 0, 0, 0.3)';
+                    context.shadowBlur = 10;
+                    context.shadowOffsetX = 3;
+                    context.shadowOffsetY = 3;
+                    
+                    // Draw watermark with gray color and transparency
+                    context.fillStyle = 'rgba(128, 128, 128, 0.3)';
+                    
+                    // Smart word wrapping - don't split words
+                    function wrapText(text, maxCharsPerLine) {
+                        const words = text.split(' ');
+                        const lines = [];
+                        let currentLine = '';
+                        
+                        for (let i = 0; i < words.length; i++) {
+                            const word = words[i];
+                            const testLine = currentLine ? currentLine + ' ' + word : word;
+                            
+                            if (testLine.length <= maxCharsPerLine) {
+                                currentLine = testLine;
+                            } else {
+                                if (currentLine) {
+                                    lines.push(currentLine);
+                                }
+                                currentLine = word;
+                            }
+                        }
+                        
+                        if (currentLine) {
+                            lines.push(currentLine);
+                        }
+                        
+                        return lines;
+                    }
+                    
+                    // Wrap text to max 25 characters per line
+                    const lines = wrapText(watermarkText, 25);
+                    const lineHeight = fontSize * 1.3;
+                    const totalHeight = (lines.length - 1) * lineHeight;
+                    const startY = -totalHeight / 2;
+                    
+                    // Draw each line
+                    lines.forEach((line, index) => {
+                        context.fillText(line, 0, startY + (index * lineHeight));
+                    });
+                    
+                    context.restore();
+                    
+                    // Add page to new PDF
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                    const pdfWidth = 210; // A4 width in mm
+                    const pdfHeight = (viewport.height * pdfWidth) / viewport.width;
+                    
+                    if (!isFirstPage) {
+                        newPdf.addPage([pdfWidth, pdfHeight]);
+                    } else {
+                        newPdf.internal.pageSize.width = pdfWidth;
+                        newPdf.internal.pageSize.height = pdfHeight;
+                        isFirstPage = false;
+                    }
+                    
+                    newPdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                }
+                
+                // Save as blob
+                watermarkedPdfBlob = newPdf.output('blob');
+                
+                showStatus('✓ Watermark added successfully!', 'success');
+                downloadWatermarkedBtn.style.display = 'block';
+                watermarkBtn.style.display = 'none';
+                
+            } catch (error) {
+                console.error('Error details:', error);
+                
+                if (error.name === 'PasswordException') {
+                    if (error.code === 1) {
+                        showStatus('Password required. Please enter the password.', 'error');
+                    } else if (error.code === 2) {
+                        showStatus('Incorrect password. Please try again.', 'error');
+                    }
+                } else if (error.message && error.message.includes('password')) {
+                    showStatus('PDF is password protected. Please enter the password first.', 'error');
+                } else {
+                    showStatus('Error: ' + error.message, 'error');
+                }
+                
+                watermarkBtn.disabled = false;
+                watermarkBtn.textContent = 'Add Watermark';
+            }
+        });
+        
+        downloadWatermarkedBtn.addEventListener('click', () => {
+            if (watermarkedPdfBlob) {
+                const url = URL.createObjectURL(watermarkedPdfBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = selectedFile.name.replace('.pdf', '_watermarked.pdf');
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showStatus('✓ Download started!', 'success');
+            }
+        });
+        
+        function showStatus(message, type) {
+            status.textContent = message;
+            status.className = 'status ' + type;
+        }
+        
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(err => {
+                console.log('Service Worker registration failed:', err);
+            });
+        }
+    </script>
+</body>
+</html>
