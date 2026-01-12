@@ -172,6 +172,41 @@
             font-size: 14px;
         }
         
+        .language-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            background: white;
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .lang-btn {
+            padding: 6px 12px;
+            border: 2px solid #E5E7EB;
+            background: white;
+            color: #6B7280;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .lang-btn:hover {
+            border-color: #4F46E5;
+            color: #4F46E5;
+        }
+        
+        .lang-btn.active {
+            background: #4F46E5;
+            color: white;
+            border-color: #4F46E5;
+        }
+        
         .slider-container {
             margin-bottom: 15px;
             display: none;
@@ -235,14 +270,19 @@
     </style>
 </head>
 <body>
+    <div class="language-selector">
+        <button class="lang-btn active" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="es">ES</button>
+    </div>
+    
     <div class="container">
-        <h1>🔓 PDF Unlocker</h1>
-        <p class="subtitle">Remove password protection from your PDFs</p>
+        <h1 data-i18n="title">🔓 PDF Unlocker</h1>
+        <p class="subtitle" data-i18n="subtitle">Remove password protection from your PDFs</p>
         
         <div class="upload-area" id="uploadArea">
             <div class="upload-icon">📄</div>
-            <p><strong>Click to upload</strong> or drag and drop</p>
-            <p style="color: #9CA3AF; font-size: 14px; margin-top: 5px;">PDF files only</p>
+            <p><strong data-i18n="uploadClick">Click to upload</strong> <span data-i18n="uploadDrag">or drag and drop</span></p>
+            <p style="color: #9CA3AF; font-size: 14px; margin-top: 5px;" data-i18n="pdfOnly">PDF files only</p>
             <input type="file" id="fileInput" accept=".pdf">
         </div>
         
@@ -251,22 +291,22 @@
             <div class="file-size" id="fileSize"></div>
         </div>
         
-        <input type="password" id="passwordInput" placeholder="Enter PDF password" style="display: none;">
+        <input type="password" id="passwordInput" data-i18n-placeholder="passwordPlaceholder" placeholder="Enter PDF password" style="display: none;">
         
-        <input type="text" id="watermarkInput" placeholder="Enter watermark text (e.g., CONFIDENTIAL)" style="display: none;">
+        <input type="text" id="watermarkInput" data-i18n-placeholder="watermarkPlaceholder" placeholder="Enter watermark text (e.g., CONFIDENTIAL)" style="display: none;">
         
         <div class="slider-container" id="sliderContainer">
             <div class="slider-label">
-                <span>Watermark Size</span>
+                <span data-i18n="watermarkSize">Watermark Size</span>
                 <span class="slider-value" id="sliderValue">Medium</span>
             </div>
             <input type="range" id="sizeSlider" min="1" max="5" value="3" step="1">
         </div>
         
-        <button id="unlockBtn" style="display: none;">Unlock PDF</button>
-        <button id="watermarkBtn" style="display: none; background: #8B5CF6;">Add Watermark</button>
-        <button class="download-btn" id="downloadBtn">📥 Download Unlocked PDF</button>
-        <button class="download-btn" id="downloadWatermarkedBtn" style="background: #8B5CF6;">📥 Download with Watermark</button>
+        <button id="unlockBtn" data-i18n="unlockBtn" style="display: none;">Unlock PDF</button>
+        <button id="watermarkBtn" data-i18n="watermarkBtn" style="display: none; background: #8B5CF6;">Add Watermark</button>
+        <button class="download-btn" id="downloadBtn" data-i18n="downloadUnlocked">📥 Download Unlocked PDF</button>
+        <button class="download-btn" id="downloadWatermarkedBtn" data-i18n="downloadWatermarked" style="background: #8B5CF6;">📥 Download with Watermark</button>
         
         <div class="status" id="status"></div>
     </div>
@@ -275,6 +315,135 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
     <script>
+        // ============================================
+        // CONFIGURATION: Set your default language here
+        // Options: 'en' (English) or 'es' (Spanish)
+        // ============================================
+        const DEFAULT_LANGUAGE = 'en';
+        
+        // Translation dictionary
+        const translations = {
+            en: {
+                title: '🔓 PDF Unlocker',
+                subtitle: 'Remove password protection from your PDFs',
+                uploadClick: 'Click to upload',
+                uploadDrag: 'or drag and drop',
+                pdfOnly: 'PDF files only',
+                passwordPlaceholder: 'Enter PDF password',
+                watermarkPlaceholder: 'Enter watermark text (e.g., CONFIDENTIAL)',
+                watermarkSize: 'Watermark Size',
+                unlockBtn: 'Unlock PDF',
+                watermarkBtn: 'Add Watermark',
+                downloadUnlocked: '📥 Download Unlocked PDF',
+                downloadWatermarked: '📥 Download with Watermark',
+                verySmall: 'Very Small',
+                small: 'Small',
+                medium: 'Medium',
+                large: 'Large',
+                veryLarge: 'Very Large',
+                selectFile: 'Please select a PDF file',
+                enterPassword: 'Please enter the password',
+                enterWatermark: 'Please enter watermark text',
+                processingPdf: 'Processing PDF...',
+                unlocking: 'Unlocking...',
+                pdfLoaded: 'PDF loaded successfully. Creating unlocked version...',
+                processingPage: 'Processing page',
+                of: 'of',
+                unlockSuccess: '✓ PDF unlocked successfully!',
+                passwordRequired: 'Password required. Please enter the password.',
+                incorrectPassword: 'Incorrect password. Please try again.',
+                addingWatermark: 'Adding Watermark...',
+                processingWatermark: 'Processing PDF with watermark...',
+                pdfLoadedWatermark: 'PDF loaded. Adding watermark...',
+                addingWatermarkPage: 'Adding watermark to page',
+                watermarkSuccess: '✓ Watermark added successfully!',
+                pdfProtected: 'PDF is password protected. Please enter the password first.',
+                downloadStarted: '✓ Download started!',
+                error: 'Error:'
+            },
+            es: {
+                title: '🔓 Desbloqueador de PDF',
+                subtitle: 'Elimina la protección por contraseña de tus PDFs',
+                uploadClick: 'Haz clic para cargar',
+                uploadDrag: 'o arrastra y suelta',
+                pdfOnly: 'Solo archivos PDF',
+                passwordPlaceholder: 'Ingresa la contraseña del PDF',
+                watermarkPlaceholder: 'Ingresa el texto de la marca de agua (ej. CONFIDENCIAL)',
+                watermarkSize: 'Tamaño de Marca de Agua',
+                unlockBtn: 'Desbloquear PDF',
+                watermarkBtn: 'Agregar Marca de Agua',
+                downloadUnlocked: '📥 Descargar PDF Desbloqueado',
+                downloadWatermarked: '📥 Descargar con Marca de Agua',
+                verySmall: 'Muy Pequeño',
+                small: 'Pequeño',
+                medium: 'Mediano',
+                large: 'Grande',
+                veryLarge: 'Muy Grande',
+                selectFile: 'Por favor selecciona un archivo PDF',
+                enterPassword: 'Por favor ingresa la contraseña',
+                enterWatermark: 'Por favor ingresa el texto de la marca de agua',
+                processingPdf: 'Procesando PDF...',
+                unlocking: 'Desbloqueando...',
+                pdfLoaded: 'PDF cargado exitosamente. Creando versión desbloqueada...',
+                processingPage: 'Procesando página',
+                of: 'de',
+                unlockSuccess: '✓ PDF desbloqueado exitosamente!',
+                passwordRequired: 'Se requiere contraseña. Por favor ingresa la contraseña.',
+                incorrectPassword: 'Contraseña incorrecta. Por favor intenta de nuevo.',
+                addingWatermark: 'Agregando Marca de Agua...',
+                processingWatermark: 'Procesando PDF con marca de agua...',
+                pdfLoadedWatermark: 'PDF cargado. Agregando marca de agua...',
+                addingWatermarkPage: 'Agregando marca de agua a página',
+                watermarkSuccess: '✓ Marca de agua agregada exitosamente!',
+                pdfProtected: 'El PDF está protegido con contraseña. Por favor ingresa la contraseña primero.',
+                downloadStarted: '✓ Descarga iniciada!',
+                error: 'Error:'
+            }
+        };
+        
+        // Current language
+        let currentLang = DEFAULT_LANGUAGE;
+        
+        // Function to update UI text
+        function updateLanguage(lang) {
+            currentLang = lang;
+            
+            // Update all elements with data-i18n attribute
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+            
+            // Update placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-i18n-placeholder');
+                if (translations[lang][key]) {
+                    element.placeholder = translations[lang][key];
+                }
+            });
+            
+            // Update slider value
+            const sliderVal = sizeSlider.value;
+            updateSliderLabel(sliderVal);
+            
+            // Update language buttons
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-lang') === lang) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Save preference
+            localStorage.setItem('preferredLanguage', lang);
+        }
+        
+        // Get translation
+        function t(key) {
+            return translations[currentLang][key] || key;
+        }
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
         const passwordInput = document.getElementById('passwordInput');
@@ -298,19 +467,34 @@
         // Set up PDF.js worker
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         
-        // Slider labels
-        const sizeLabels = {
-            1: 'Very Small',
-            2: 'Small',
-            3: 'Medium',
-            4: 'Large',
-            5: 'Very Large'
-        };
+        // Slider labels function
+        function updateSliderLabel(value) {
+            const labels = {
+                1: t('verySmall'),
+                2: t('small'),
+                3: t('medium'),
+                4: t('large'),
+                5: t('veryLarge')
+            };
+            sliderValue.textContent = labels[value];
+        }
         
         // Update slider label
         sizeSlider.addEventListener('input', (e) => {
-            sliderValue.textContent = sizeLabels[e.target.value];
+            updateSliderLabel(e.target.value);
         });
+        
+        // Language selector
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const lang = btn.getAttribute('data-lang');
+                updateLanguage(lang);
+            });
+        });
+        
+        // Initialize language on page load
+        const savedLang = localStorage.getItem('preferredLanguage') || DEFAULT_LANGUAGE;
+        updateLanguage(savedLang);
         
         // Upload area click
         uploadArea.addEventListener('click', () => fileInput.click());
@@ -369,13 +553,13 @@
             const password = passwordInput.value.trim();
             
             if (!selectedFile) {
-                showStatus('Please select a PDF file', 'error');
+                showStatus(t('selectFile'), 'error');
                 return;
             }
             
             unlockBtn.disabled = true;
-            unlockBtn.textContent = 'Unlocking...';
-            showStatus('Processing PDF...', 'info');
+            unlockBtn.textContent = t('unlocking');
+            showStatus(t('processingPdf'), 'info');
             
             try {
                 const arrayBuffer = await selectedFile.arrayBuffer();
@@ -388,7 +572,7 @@
                 
                 const pdf = await loadingTask.promise;
                 
-                showStatus('PDF loaded successfully. Creating unlocked version...', 'info');
+                showStatus(t('pdfLoaded'), 'info');
                 
                 // Create new PDF using jsPDF
                 const { jsPDF } = window.jspdf;
@@ -397,7 +581,7 @@
                 
                 // Process each page
                 for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                    showStatus(`Processing page ${pageNum} of ${pdf.numPages}...`, 'info');
+                    showStatus(`${t('processingPage')} ${pageNum} ${t('of')} ${pdf.numPages}...`, 'info');
                     
                     const page = await pdf.getPage(pageNum);
                     const viewport = page.getViewport({ scale: 2.0 });
@@ -434,7 +618,7 @@
                 // Save as blob
                 unlockedPdfBlob = newPdf.output('blob');
                 
-                showStatus('✓ PDF unlocked successfully!', 'success');
+                showStatus(t('unlockSuccess'), 'success');
                 downloadBtn.style.display = 'block';
                 unlockBtn.style.display = 'none';
                 passwordInput.style.display = 'none';
@@ -444,18 +628,18 @@
                 
                 if (error.name === 'PasswordException') {
                     if (error.code === 1) {
-                        showStatus('Password required. Please enter the password.', 'error');
+                        showStatus(t('passwordRequired'), 'error');
                     } else if (error.code === 2) {
-                        showStatus('Incorrect password. Please try again.', 'error');
+                        showStatus(t('incorrectPassword'), 'error');
                     }
                 } else if (error.message && error.message.includes('password')) {
-                    showStatus('Incorrect password. Please try again.', 'error');
+                    showStatus(t('incorrectPassword'), 'error');
                 } else {
-                    showStatus('Error: ' + error.message, 'error');
+                    showStatus(t('error') + ' ' + error.message, 'error');
                 }
                 
                 unlockBtn.disabled = false;
-                unlockBtn.textContent = 'Unlock PDF';
+                unlockBtn.textContent = t('unlockBtn');
             }
         });
         
@@ -470,7 +654,7 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 
-                showStatus('✓ Download started!', 'success');
+                showStatus(t('downloadStarted'), 'success');
             }
         });
         
@@ -479,18 +663,18 @@
             const password = passwordInput.value.trim();
             
             if (!selectedFile) {
-                showStatus('Please select a PDF file', 'error');
+                showStatus(t('selectFile'), 'error');
                 return;
             }
             
             if (!watermarkText) {
-                showStatus('Please enter watermark text', 'error');
+                showStatus(t('enterWatermark'), 'error');
                 return;
             }
             
             watermarkBtn.disabled = true;
-            watermarkBtn.textContent = 'Adding Watermark...';
-            showStatus('Processing PDF with watermark...', 'info');
+            watermarkBtn.textContent = t('addingWatermark');
+            showStatus(t('processingWatermark'), 'info');
             
             try {
                 const arrayBuffer = await selectedFile.arrayBuffer();
@@ -503,7 +687,7 @@
                 
                 const pdf = await loadingTask.promise;
                 
-                showStatus('PDF loaded. Adding watermark...', 'info');
+                showStatus(t('pdfLoadedWatermark'), 'info');
                 
                 // Create new PDF with watermark
                 const { jsPDF } = window.jspdf;
@@ -512,7 +696,7 @@
                 
                 // Process each page
                 for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                    showStatus(`Adding watermark to page ${pageNum} of ${pdf.numPages}...`, 'info');
+                    showStatus(`${t('addingWatermarkPage')} ${pageNum} ${t('of')} ${pdf.numPages}...`, 'info');
                     
                     const page = await pdf.getPage(pageNum);
                     const viewport = page.getViewport({ scale: 2.0 });
@@ -614,7 +798,7 @@
                 // Save as blob
                 watermarkedPdfBlob = newPdf.output('blob');
                 
-                showStatus('✓ Watermark added successfully!', 'success');
+                showStatus(t('watermarkSuccess'), 'success');
                 downloadWatermarkedBtn.style.display = 'block';
                 watermarkBtn.style.display = 'none';
                 
@@ -623,18 +807,18 @@
                 
                 if (error.name === 'PasswordException') {
                     if (error.code === 1) {
-                        showStatus('Password required. Please enter the password.', 'error');
+                        showStatus(t('passwordRequired'), 'error');
                     } else if (error.code === 2) {
-                        showStatus('Incorrect password. Please try again.', 'error');
+                        showStatus(t('incorrectPassword'), 'error');
                     }
                 } else if (error.message && error.message.includes('password')) {
-                    showStatus('PDF is password protected. Please enter the password first.', 'error');
+                    showStatus(t('pdfProtected'), 'error');
                 } else {
-                    showStatus('Error: ' + error.message, 'error');
+                    showStatus(t('error') + ' ' + error.message, 'error');
                 }
                 
                 watermarkBtn.disabled = false;
-                watermarkBtn.textContent = 'Add Watermark';
+                watermarkBtn.textContent = t('watermarkBtn');
             }
         });
         
@@ -649,7 +833,7 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 
-                showStatus('✓ Download started!', 'success');
+                showStatus(t('downloadStarted'), 'success');
             }
         });
         
